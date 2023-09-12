@@ -353,6 +353,8 @@ message LinuxSandboxSecurityContext {
     SecurityProfile seccomp = 9;
     // AppArmor profile for the sandbox.
     SecurityProfile apparmor = 10;
+    //ima namesapce
+    bool ima = 11;
     // Seccomp profile for the sandbox, candidate values are:
     // * runtime/default: the default profile for the container runtime
     // * unconfined: unconfined profile, ie, no seccomp sandboxing

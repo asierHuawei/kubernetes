@@ -218,6 +218,9 @@ func (m *kubeGenericRuntimeManager) generatePodSandboxLinuxConfig(pod *v1.Pod) (
 				Level: sc.SELinuxOptions.Level,
 			}
 		}
+		if runtime.GOOS != "windows" && sc.Ima != nil {
+			lc.SecurityContext.Ima = *sc.Ima
+		}
 	}
 
 	return lc, nil

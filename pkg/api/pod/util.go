@@ -525,6 +525,15 @@ func dropDisabledFields(
 		}
 	}
 
+	// If the feature is disabled and not in use, drop the ima field.
+	if !utilfeature.DefaultFeatureGate.Enabled(features.IMANamespaceSupport) && !IMAInUse(oldPodSpec) {
+		// Drop the field in podSpec only if SecurityContext is not nil.
+		// If it is nil, there is no need to set hostUsers=nil (it will be nil too).
+		if podSpec.SecurityContext != nil {
+			podSpec.SecurityContext.Ima = nil
+		}
+	}
+
 	// If the feature is disabled and not in use, drop the schedulingGates field.
 	if !utilfeature.DefaultFeatureGate.Enabled(features.PodSchedulingReadiness) && !schedulingGatesInUse(oldPodSpec) {
 		podSpec.SchedulingGates = nil
@@ -770,6 +779,15 @@ func inPlacePodVerticalScalingInUse(podSpec *api.PodSpec) bool {
 		return true
 	})
 	return inUse
+}
+
+// IMAInUse returns true if the pod spec has spec.ima field set.
+func IMAInUse(podSpec *api.PodSpec) bool {
+	if podSpec != nil && podSpec.SecurityContext != nil && podSpec.SecurityContext.Ima != nil {
+		return true
+	}
+
+	return false
 }
 
 // procMountInUse returns true if the pod spec is non-nil and has a SecurityContext's ProcMount field set to a non-default value

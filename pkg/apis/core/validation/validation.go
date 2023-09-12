@@ -3360,6 +3360,24 @@ func validateContainerCommon(ctr *core.Container, volumes map[string]core.Volume
 	return allErrs
 }
 
+func validateIMANamespace(spec *core.PodSpec, fldPath *field.Path) field.ErrorList {
+	allErrs := field.ErrorList{}
+
+	if spec.SecurityContext == nil || spec.SecurityContext.Ima == nil || spec.SecurityContext.HostUsers == nil {
+		return allErrs
+	}
+
+	if spec.SecurityContext.HostUsers == nil {
+		allErrs = append(allErrs, field.Forbidden(fldPath.Child("Ima"), "when `pod.Spec.HostUsers` is nil"))
+	} else {
+		if *spec.SecurityContext.HostUsers {
+			allErrs = append(allErrs, field.Forbidden(fldPath.Child("Ima"), "when `pod.Spec.HostUsers` is false"))
+		}
+	}
+
+	return allErrs
+}
+
 func validateHostUsers(spec *core.PodSpec, fldPath *field.Path) field.ErrorList {
 	allErrs := field.ErrorList{}
 
@@ -3963,6 +3981,7 @@ func ValidatePodSpec(spec *core.PodSpec, podMeta *metav1.ObjectMeta, fldPath *fi
 	allErrs = append(allErrs, validateTopologySpreadConstraints(spec.TopologySpreadConstraints, fldPath.Child("topologySpreadConstraints"), opts)...)
 	allErrs = append(allErrs, validateWindowsHostProcessPod(spec, fldPath)...)
 	allErrs = append(allErrs, validateHostUsers(spec, fldPath)...)
+	allErrs = append(allErrs, validateIMANamespace(spec, fldPath)...)
 	if len(spec.ServiceAccountName) > 0 {
 		for _, msg := range ValidateServiceAccountName(spec.ServiceAccountName, false) {
 			allErrs = append(allErrs, field.Invalid(fldPath.Child("serviceAccountName"), spec.ServiceAccountName, msg))
@@ -4057,6 +4076,9 @@ func validateWindows(spec *core.PodSpec, fldPath *field.Path) field.ErrorList {
 		}
 		if securityContext.HostUsers != nil {
 			allErrs = append(allErrs, field.Forbidden(fldPath.Child("hostUsers"), "cannot be set for a windows pod"))
+		}
+		if securityContext.Ima != nil {
+			allErrs = append(allErrs, field.Forbidden(fldPath.Child("Ima"), "cannot be set for a windows pod"))
 		}
 		if securityContext.HostPID {
 			allErrs = append(allErrs, field.Forbidden(fldPath.Child("hostPID"), "cannot be set for a windows pod"))

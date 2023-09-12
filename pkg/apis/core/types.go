@@ -3475,6 +3475,8 @@ type PodSecurityContext struct {
 	// Note that this field cannot be set when spec.os.name is windows.
 	// +optional
 	SeccompProfile *SeccompProfile
+	// Ima reflects ima namesapce support in pods
+	Ima *bool
 }
 
 // SeccompProfile defines a pod/container's seccomp profile settings.

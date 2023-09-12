@@ -897,6 +897,14 @@ const (
 	// Enables user namespace support for stateless pods.
 	UserNamespacesSupport featuregate.Feature = "UserNamespacesSupport"
 
+	// owner: @asierHuawei
+	// kep: https://kep.k8s.io/xxx
+	// alpha:
+	//
+	// Enables IMA namespace support for stateless pods.
+	IMANamespaceSupport featuregate.Feature = "IMANamespaceSupport"
+
+
 	// owner: @cofyc
 	// alpha: v1.21
 	VolumeCapacityPriority featuregate.Feature = "VolumeCapacityPriority"
@@ -1189,6 +1197,8 @@ var defaultKubernetesFeatureGates = map[featuregate.Feature]featuregate.FeatureS
 	VolumeCapacityPriority: {Default: false, PreRelease: featuregate.Alpha},
 
 	UserNamespacesSupport: {Default: false, PreRelease: featuregate.Alpha},
+
+	IMANamespaceSupport: {Default: false, PreRelease: featuregate.Alpha},
 
 	WinDSR: {Default: false, PreRelease: featuregate.Alpha},
 

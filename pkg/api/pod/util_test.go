@@ -1747,6 +1747,103 @@ func TestDropHostUsers(t *testing.T) {
 
 }
 
+func TestDropIma(t *testing.T) {
+	falseVar := false
+	trueVar := true
+
+	podWithoutIma := func() *api.Pod {
+		return &api.Pod{
+			Spec: api.PodSpec{
+				SecurityContext: &api.PodSecurityContext{}},
+		}
+	}
+	podWithIMAFalse := func() *api.Pod {
+		return &api.Pod{
+			Spec: api.PodSpec{
+				SecurityContext: &api.PodSecurityContext{
+					Ima: &falseVar,
+				},
+			},
+		}
+	}
+	podWithIMATrue := func() *api.Pod {
+		return &api.Pod{
+			Spec: api.PodSpec{
+				SecurityContext: &api.PodSecurityContext{
+					Ima: &trueVar,
+				},
+			},
+		}
+	}
+
+	podInfo := []struct {
+		description string
+		hasIma      bool
+		pod         func() *api.Pod
+	}{
+		{
+			description: "with ima=true",
+			hasIma:      true,
+			pod:         podWithIMATrue,
+		},
+		{
+			description: "with ima=false",
+			hasIma:      true,
+			pod:         podWithIMAFalse,
+		},
+		{
+			description: "with ima=nil",
+			pod:         func() *api.Pod { return nil },
+		},
+	}
+
+	for _, enabled := range []bool{true, false} {
+		for _, oldPodInfo := range podInfo {
+			for _, newPodInfo := range podInfo {
+				oldPodHasIma, oldPod := oldPodInfo.hasIma, oldPodInfo.pod()
+				newPodHasIma, newPod := newPodInfo.hasIma, newPodInfo.pod()
+				if newPod == nil {
+					continue
+				}
+
+				t.Run(fmt.Sprintf("feature enabled=%v, old pod %v, new pod %v", enabled, oldPodInfo.description, newPodInfo.description), func(t *testing.T) {
+					defer featuregatetesting.SetFeatureGateDuringTest(t, utilfeature.DefaultFeatureGate, features.IMANamespaceSupport, enabled)()
+
+					DropDisabledPodFields(newPod, oldPod)
+
+					// old pod should never be changed
+					if !reflect.DeepEqual(oldPod, oldPodInfo.pod()) {
+						t.Errorf("old pod changed: %v", cmp.Diff(oldPod, oldPodInfo.pod()))
+					}
+
+					switch {
+					case enabled || oldPodHasIma:
+						// new pod should not be changed if the feature is enabled, or if the old pod had hostUsers
+						if !reflect.DeepEqual(newPod, newPodInfo.pod()) {
+							t.Errorf("new pod changed: %v", cmp.Diff(newPod, newPodInfo.pod()))
+						}
+					case newPodHasIma:
+						// new pod should be changed
+						if reflect.DeepEqual(newPod, newPodInfo.pod()) {
+							t.Errorf("new pod was not changed")
+						}
+						// new pod should not have hostUsers
+						if exp := podWithoutIma(); !reflect.DeepEqual(newPod, exp) {
+							t.Errorf("new pod had ima: %v", cmp.Diff(newPod, exp))
+						}
+					default:
+						// new pod should not need to be changed
+						if !reflect.DeepEqual(newPod, newPodInfo.pod()) {
+							t.Errorf("new pod changed: %v", cmp.Diff(newPod, newPodInfo.pod()))
+						}
+					}
+				})
+			}
+		}
+	}
+
+}
+
 func TestDropSchedulingGates(t *testing.T) {
 	podWithSchedulingGates := func() *api.Pod {
 		return &api.Pod{

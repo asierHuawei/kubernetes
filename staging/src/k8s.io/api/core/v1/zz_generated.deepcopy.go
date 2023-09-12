@@ -3934,6 +3934,12 @@ func (in *PodSecurityContext) DeepCopyInto(out *PodSecurityContext) {
 		*out = new(SeccompProfile)
 		(*in).DeepCopyInto(*out)
 	}
+	if in.Ima != nil {
+		in, out := &in.Ima, &out.Ima
+		*out = new(bool)
+		**out = **in
+	}
+
 	return
 }
 

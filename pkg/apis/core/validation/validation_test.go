@@ -22624,6 +22624,71 @@ func TestValidateHostUsers(t *testing.T) {
 	}
 }
 
+
+func TestImaNamespace(t *testing.T) {
+	falseVar := false
+	trueVar := true
+	cases := []struct {
+		name    string
+		success bool
+		spec    *core.PodSpec
+	}{
+		{
+			name:    "empty",
+			success: true,
+			spec:    &core.PodSpec{},
+		},
+		{
+			name:    "ima unset",
+			success: true,
+			spec: &core.PodSpec{
+				SecurityContext: &core.PodSecurityContext{},
+			},
+		},
+		{
+			name:    "ima=false",
+			success: true,
+			spec: &core.PodSpec{
+				SecurityContext: &core.PodSecurityContext{
+					Ima: &falseVar,
+				},
+			},
+		},
+		{
+			name:    "ima=true",
+			success: true,
+			spec: &core.PodSpec{
+				SecurityContext: &core.PodSecurityContext{
+					Ima: &trueVar,
+				},
+			},
+		},
+		{
+			name:    "hostUsers=true & ima=true",
+			success: false,
+			spec: &core.PodSpec{
+				SecurityContext: &core.PodSecurityContext{
+					HostUsers: &trueVar,
+					Ima:       &trueVar,
+				},
+			},
+		},
+	}
+	for _, tc := range cases {
+		t.Run(tc.name, func(t *testing.T) {
+			fPath := field.NewPath("spec")
+			allErrs := validateIMANamespace(tc.spec, fPath)
+			if !tc.success && len(allErrs) == 0 {
+				t.Errorf("Unexpected success")
+			}
+			if tc.success && len(allErrs) != 0 {
+				t.Errorf("Unexpected error(s): %v", allErrs)
+			}
+		})
+	}
+}
+
+
 func TestValidateWindowsHostProcessPod(t *testing.T) {
 	const containerName = "container"
 	falseVar := false

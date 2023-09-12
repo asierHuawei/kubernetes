@@ -3940,6 +3940,8 @@ type PodSecurityContext struct {
 	// Note that this field cannot be set when spec.os.name is windows.
 	// +optional
 	SeccompProfile *SeccompProfile `json:"seccompProfile,omitempty" protobuf:"bytes,10,opt,name=seccompProfile"`
+	// Ima reflects ima namespace support in pods
+	Ima *bool `json:"ima,omitempty" protobuf:"varint,11,opt,name=ima"`
 }
 
 // SeccompProfile defines a pod/container's seccomp profile settings.

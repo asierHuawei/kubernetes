@@ -6455,6 +6455,9 @@ var schemaYAML = typed.YAMLObject(`types:
     - name: fsGroupChangePolicy
       type:
         scalar: string
+    - name: ima
+      type:
+        scalar: boolean
     - name: runAsGroup
       type:
         scalar: numeric

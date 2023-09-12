@@ -126,6 +126,11 @@ func TestGeneratePodSandboxLinuxConfigSeccomp(t *testing.T) {
 			pod:             newSeccompPod(nil, nil, "", "unconfined"),
 			expectedProfile: v1.SeccompProfileTypeRuntimeDefault,
 		},
+		{
+			description:     "enable IMA namespaces",
+			pod:             newImaPod(nil, nil, "", "unconfined"),
+			expectedProfile: "runtime/default",
+		},
 	}
 
 	for i, test := range tests {
@@ -134,6 +139,23 @@ func TestGeneratePodSandboxLinuxConfigSeccomp(t *testing.T) {
 		assert.EqualValues(t, test.expectedProfile, actualProfile, "TestCase[%d]: %s", i, test.description)
 	}
 }
+
+// TODO: fix this test case
+func newImaPod(podFieldProfile, containerFieldProfile *v1.SeccompProfile, podAnnotationProfile, containerAnnotationProfile string) *v1.Pod {
+	pod := newTestPod()
+	if podFieldProfile != nil {
+		pod.Spec.SecurityContext = &v1.PodSecurityContext{
+			SeccompProfile: podFieldProfile,
+		}
+	}
+	if containerFieldProfile != nil {
+		pod.Spec.Containers[0].SecurityContext = &v1.SecurityContext{
+			SeccompProfile: containerFieldProfile,
+		}
+	}
+	return pod
+}
+
 
 // TestCreatePodSandbox_RuntimeClass tests creating sandbox with RuntimeClasses enabled.
 func TestCreatePodSandbox_RuntimeClass(t *testing.T) {
@@ -197,6 +219,21 @@ func newTestPod() *v1.Pod {
 }
 
 func newSeccompPod(podFieldProfile, containerFieldProfile *v1.SeccompProfile, podAnnotationProfile, containerAnnotationProfile string) *v1.Pod {
+	pod := newTestPod()
+	if podFieldProfile != nil {
+		pod.Spec.SecurityContext = &v1.PodSecurityContext{
+			SeccompProfile: podFieldProfile,
+		}
+	}
+	if containerFieldProfile != nil {
+		pod.Spec.Containers[0].SecurityContext = &v1.SecurityContext{
+			SeccompProfile: containerFieldProfile,
+		}
+	}
+	return pod
+}
+
+func newImaPod(podFieldProfile, containerFieldProfile *v1.SeccompProfile, podAnnotationProfile, containerAnnotationProfile string) *v1.Pod {
 	pod := newTestPod()
 	if podFieldProfile != nil {
 		pod.Spec.SecurityContext = &v1.PodSecurityContext{

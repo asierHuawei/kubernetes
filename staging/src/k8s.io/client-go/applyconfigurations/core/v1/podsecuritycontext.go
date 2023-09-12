@@ -35,6 +35,7 @@ type PodSecurityContextApplyConfiguration struct {
 	Sysctls             []SysctlApplyConfiguration                       `json:"sysctls,omitempty"`
 	FSGroupChangePolicy *corev1.PodFSGroupChangePolicy                   `json:"fsGroupChangePolicy,omitempty"`
 	SeccompProfile      *SeccompProfileApplyConfiguration                `json:"seccompProfile,omitempty"`
+	Ima                 *bool                                            `json:"ima,omitempty"`
 }
 
 // PodSecurityContextApplyConfiguration constructs an declarative configuration of the PodSecurityContext type for use with
@@ -127,5 +128,9 @@ func (b *PodSecurityContextApplyConfiguration) WithFSGroupChangePolicy(value cor
 // If called multiple times, the SeccompProfile field is set to the value of the last call.
 func (b *PodSecurityContextApplyConfiguration) WithSeccompProfile(value *SeccompProfileApplyConfiguration) *PodSecurityContextApplyConfiguration {
 	b.SeccompProfile = value
+	return b
+}
+func (b *PodSecurityContextApplyConfiguration) WithIma(value bool) *PodSecurityContextApplyConfiguration {
+	b.Ima = &value
 	return b
 }
